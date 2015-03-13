@@ -1,7 +1,7 @@
 package grocery
 
 type GroceryList struct {
-	API API
+	Store API
 }
 
 func New() *GroceryList {
@@ -9,11 +9,11 @@ func New() *GroceryList {
 }
 
 func (g *GroceryList) AddItem(item string) error {
-	return g.API.Create(&Note{Text: item})
+	return g.Store.Create(&Note{Text: item})
 }
 
 func (g *GroceryList) Items() ([]string, error) {
-	notes, err := g.API.All()
+	notes, err := g.Store.All()
 	if err != nil {
 		return []string{}, err
 	}

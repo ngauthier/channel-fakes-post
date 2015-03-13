@@ -25,16 +25,20 @@ func (c *FakeClient) All() ([]*Note, error) {
 	return resp.notes, resp.err
 }
 
+func (c *FakeClient) AssertAll(notes []*Note, err error) {
+	call := (<-c.Calls).(*allCall)
+	if call == nil {
+		c.t.Error("No all call")
+	}
+	c.Calls <- &allResp{notes, err}
+}
+
 type createCall struct{ note *Note }
 type createResp struct{ err error }
 
 func (c *FakeClient) Create(n *Note) error {
 	c.Calls <- &createCall{n}
 	return (<-c.Calls).(*createResp).err
-}
-
-func (c *FakeClient) Close() {
-	close(c.Calls)
 }
 
 func (c *FakeClient) AssertCreate(n *Note, err error) {
@@ -45,12 +49,8 @@ func (c *FakeClient) AssertCreate(n *Note, err error) {
 	c.Calls <- &createResp{err}
 }
 
-func (c *FakeClient) AssertAll(notes []*Note, err error) {
-	call := (<-c.Calls).(*allCall)
-	if call == nil {
-		c.t.Error("No all call")
-	}
-	c.Calls <- &allResp{notes, err}
+func (c *FakeClient) Close() {
+	close(c.Calls)
 }
 
 func (c *FakeClient) AssertDone(t *testing.T) {
@@ -62,7 +62,7 @@ func (c *FakeClient) AssertDone(t *testing.T) {
 func TestGroceryList(t *testing.T) {
 	client := NewFakeClient(t)
 	list := New()
-	list.API = client
+	list.Store = client
 
 	go func() {
 		client.AssertCreate(&Note{"apples"}, nil)
