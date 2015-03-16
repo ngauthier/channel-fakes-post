@@ -59,17 +59,28 @@ func (c *FakeClient) AssertDone(t *testing.T) {
 	}
 }
 
-func TestGroceryList(t *testing.T) {
+func TestGroceryListCreate(t *testing.T) {
 	client := NewFakeClient(t)
 	list := New()
 	list.Store = client
 
 	go func() {
 		client.AssertCreate(&Note{"apples"}, nil)
-		client.AssertAll([]*Note{{"apples"}}, nil)
 		client.Close()
 	}()
 	list.AddItem("apples")
+	client.AssertDone(t)
+}
+
+func TestGroceryListAll(t *testing.T) {
+	client := NewFakeClient(t)
+	list := New()
+	list.Store = client
+
+	go func() {
+		client.AssertAll([]*Note{{"apples"}}, nil)
+		client.Close()
+	}()
 	items, err := list.Items()
 	if err != nil {
 		t.Fatal(err)
